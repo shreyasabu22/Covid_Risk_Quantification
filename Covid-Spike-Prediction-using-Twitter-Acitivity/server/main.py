@@ -68,8 +68,32 @@ def get_coordinates():
     # Enter the code to process the data
     # Run Classifier
     
+    tweets_list=[]
     for tweet in tweets:
-          tweet['full_text']
+          tweets_list.append(text_prep(tweet['full_text']))
+
+    pickle_in = open('LabelEncoder.pkl',"rb")
+    le_pickle = pickle.load(pickle_in)
+
+    def decode(lb, one_hot):
+        dec = np.argmax(one_hot, axis=1)
+        return lb.inverse_transform(dec)
+
+
+    x_test = np.asarray(tweets_list)
+
+    with tf.Session() as session:
+        tf.compat.v1.keras.backend.set_session(session)
+        session.run(tf.global_variables_initializer())
+        session.run(tf.tables_initializer())
+        json_file = open('elmomodel.json', 'r')
+        loaded_model_json = json_file.read()
+        json_file.close()
+        loaded_model = model_from_json(loaded_model_json)
+        loaded_model.load_weights("elmo_model.h5")
+        predicts = loaded_model.predict(x_test,verbose=2)
+
+    y_preds = decode(le_pickle, predicts)
     
     
     tweet = {
